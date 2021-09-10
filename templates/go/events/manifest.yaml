@@ -1,0 +1,3 @@
+builders:
+  default: quay.io/boson/faas-go-builder
+

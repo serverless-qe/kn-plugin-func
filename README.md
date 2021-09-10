@@ -1,17 +1,34 @@
-# Func
+# OpenShift Serverless Functions
 
-[![CI Status](https://github.com/knative-sandbox/kn-plugin-func/actions/workflows/ci.yaml/badge.svg)](https://github.com/knative-sandbox/kn-plugin-func/actions/workflows/ci.yaml)
-[![Client API Documentation](https://pkg.go.dev/badge/knative.dev/kn-plugin-func?utm_source=godoc)](https://pkg.go.dev/knative.dev/kn-plugin-func)
-[![Issues](https://img.shields.io/github/issues/knative-sandbox/kn-plugin-func.svg)](https://github.com/knative-sandbox/kn-plugin-func/issues)
-[![License](https://img.shields.io/github/license/knative-sandbox/kn-plugin-func)](https://github.com/knative-sandbox/kn-plugin-func/blob/main/LICENSE)
-[![Releases](https://img.shields.io/github/v/release/knative-sandbox/kn-plugin-func.svg?label=Release)](https://github.com/knative-sandbox/kn-plugin-func/releases)
+This repository holds the OpenShift Serverless fork of
+`knative-sandbox/kn-plugin-func` with modifications needed only for OpenShift.
 
-`func` is a Client Library and CLI enabling the development and deployment of Functions.
+The upstream CLI uses built in "language packs" that use paketo builders and
+buildpacks. This midstream repository replaces the `manifest.yaml` files in
+each of these language pack templates with one containing the Red Hat builder
+images. These can be found in `./templates`.
 
-[Read the Documentation](docs/README.md)
+## Mirroring upstream
 
-## Contributing
+The upstream repo, `knative-sandbox/kn-plugin-func` is mirrored on the 
+`release-next` and `release-next-ci` branches, as well as all of the existing
+release branches.
 
-We are always looking for contributions from the Function Developer community.  For more information on how to participate, see the [Development Guide](docs/DEVELOPMENT.md)
+In order for mirroring to work correctly, you'll need to have two git remotes
+for this repository.
 
-The `func` Task Force meets @ 10:30 PST every Tuesday, we'd love to have you! For more information, see the invitation on the [Knative Team Calendar](https://calendar.google.com/calendar/u/0/embed?src=knative.team_9q83bg07qs5b9rrslp5jor4l6s@group.calendar.google.com).
+- `upstream` pointing to `knative-sandbox/kn-plugin-func`
+- `openshift` pointing to `openshift-knative/kn-plugin-func`
+
+When we are preparing to release a new version of OpenShift Serverless functions
+we need to mirror the upstream repository and apply the template modifications.
+This is done using the `openshift/release/update-to-head.sh` script. When it runs,
+the following steps are taken.
+
+- The upstream is fetched and checked out as the `release-next` branch
+- The `openshift` remote `main` branch is pulled and openshift specific files from that branch are applied to the `release-next` branch
+- The `release-next` branch is force pushed to the `openshift` remote
+- The `release-next` branch is duplicated to `release-next-ci`
+- A timestamp file is added to `release-next-ci` branch
+- The `release-next-ci` branch is force pushed to the `openshift` remote
+- A pull request is created (if it does not already exist) for this change, in order to trigger a CI run

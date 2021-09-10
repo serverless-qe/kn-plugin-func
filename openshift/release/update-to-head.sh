@@ -27,10 +27,11 @@ REPO_NAME=$(basename $(git rev-parse --show-toplevel))
 # Custom files
 custom_files=$(cat <<EOT | tr '\n' ' '
 openshift
-OWNERS
-Makefile
+templates
 EOT
 )
+openshift_files_msg=":open_file_folder: update OpenShift specific files"
+robot_trigger_msg=":robot: triggering CI on branch 'release-next' after synching from upstream/main"
 
 # Reset release-next to upstream/main.
 git fetch upstream main
@@ -39,8 +40,8 @@ git checkout upstream/main -B release-next
 # Update openshift's main and take all needed files from there.
 git fetch openshift main
 git checkout openshift/main $custom_files
-git add openshift OWNERS_ALIASES OWNERS Makefile
-git commit -m ":open_file_folder: Update openshift specific files."
+git add $custom_files
+git commit -m "${openshift_files_msg}"
 
 git push -f openshift release-next
 
@@ -48,15 +49,15 @@ git push -f openshift release-next
 git checkout release-next -B release-next-ci
 date > ci
 git add ci
-git commit -m ":robot: Triggering CI on branch 'release-next' after synching to upstream/main"
+git commit -m "${robot_trigger_msg}"
 git push -f openshift release-next-ci
 
 if hash hub 2>/dev/null; then
    # Test if there is already a sync PR in 
    COUNT=$(hub api -H "Accept: application/vnd.github.v3+json" repos/openshift-knative/${REPO_NAME}/pulls --flat \
-    | grep -c ":robot: Triggering CI on branch 'release-next' after synching to upstream/main") || true
+    | grep -c "${robot_trigger_msg}") || true
    if [ "$COUNT" = "0" ]; then
-      hub pull-request --no-edit -l "kind/sync-fork-to-upstream" -b openshift-knative/${REPO_NAME}:release-next -h openshift-knative/${REPO_NAME}:release-next-ci
+      hub pull-request --no-edit -l "kind/sync-fork-to-upstream" -b openshift-knative/${REPO_NAME}:release-next -h openshift-knative/${REPO_NAME}:release-next-ci -m "${robot_trigger_msg}"
    fi
 else
    echo "hub (https://github.com/github/hub) is not installed, so you'll need to create a PR manually."
