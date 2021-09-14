@@ -58,7 +58,7 @@ function run_e2e_tests(){
 
 env
 
-scale_up_workers || exit 1
+# scale_up_workers || exit 1
 
 failed=0
 
